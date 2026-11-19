@@ -1,0 +1,17 @@
+{
+  "users": [
+    {
+      "id": "usr-owner-omyavtkar",
+      "loginId": "omyavtkar@2003",
+      "displayName": "Om Yavtkar",
+      "email": "omyavtkar2003@gmail.com",
+      "authMethod": "credentials",
+      "biometricEnabled": false,
+      "biometricCredentials": [],
+      "passwordSalt": "61bb6091d11363afbf8ec6f0dde9157f",
+      "passwordHash": "92e443b16fcb7392cd6e12fbf8c1f426afa4bdf178c44ce351e9ce64c04943f2e0a2c6dd81ffc0bc773c9df0e92bf393a85808342f1a6f0ffd6532e1f45ef5ae",
+      "createdAt": "2026-11-19T10:15:29.088Z",
+      "updatedAt": "2026-11-19T10:15:29.088Z"
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'authMethod', 'biometricEnabled', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'role', 'authMethod', 'biometricEnabled', 'channelHandle', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid == request.auth.uid
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 80
+        && data.role == 'creator'
+        && data.authMethod in ['google', 'email', 'mobile_biometric']
+        && data.biometricEnabled is bool
+        && (!('channelHandle' in data) || (data.channelHandle is string && data.channelHandle.size() <= 80))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateContact(data) {
+      return data.keys().hasAll(['uid', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'phoneNumber', 'updatedAt'])
+        && data.uid is string
+        && data.uid == request.auth.uid
+        && (!('email' in data) || (data.email is string && data.email.size() <= 160))
+        && (!('phoneNumber' in data) || (data.phoneNumber is string && data.phoneNumber.size() <= 24))
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidBiometricCredential(data) {
+      return data.keys().hasAll(['credentialId', 'ownerId', 'deviceLabel', 'transports', 'createdAt'])
+        && data.keys().hasOnly(['credentialId', 'ownerId', 'deviceLabel', 'transports', 'createdAt'])
+        && data.credentialId is string
+        && data.credentialId.size() >= 4
+        && data.credentialId.size() <= 256
+        && data.ownerId is string
+        && data.ownerId == request.auth.uid
+        && data.deviceLabel is string
+        && data.deviceLabel.size() >= 1
+        && data.deviceLabel.size() <= 80
+        && data.transports is list
+        && data.transports.size() <= 6
+        && (data.transports.size() == 0 || data.transports[0] is string)
+        && data.createdAt is timestamp;
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isOwner(userId);
+      allow list: if false;
+      allow create: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isOwner(userId)
+        && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().role == existing().role
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'authMethod', 'biometricEnabled', 'channelHandle', 'updatedAt']);
+      allow delete: if isVerifiedUser() && isValidId(userId) && isOwner(userId);
+
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && docId == 'contact' && isOwner(userId);
+        allow list: if false;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(docId)
+          && docId == 'contact'
+          && isOwner(userId)
+          && isValidUserPrivateContact(incoming())
+          && incoming().updatedAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(docId)
+          && docId == 'contact'
+          && isOwner(userId)
+          && isValidUserPrivateContact(incoming())
+          && incoming().uid == existing().uid
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'phoneNumber', 'updatedAt'])
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(docId) && isOwner(userId);
+      }
+
+      match /biometricCredentials/{credentialId} {
+        allow get: if isValidId(userId) && isValidId(credentialId) && isOwner(userId);
+        allow list: if isSignedIn() && isOwner(userId) && resource.data.ownerId == request.auth.uid;
+        allow create: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(credentialId)
+          && isOwner(userId)
+          && isValidBiometricCredential(incoming())
+          && incoming().createdAt == request.time
+          && exists(/databases/$(database)/documents/users/$(userId));
+        allow update: if false;
+        allow delete: if isVerifiedUser() && isValidId(userId) && isValidId(credentialId) && isOwner(userId);
+      }
+    }
+  }
+}

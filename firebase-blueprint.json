@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public-safe creator profile in KathaStudio without PII.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the creator."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Creator display name."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["creator"],
+          "description": "Creator account role."
+        },
+        "authMethod": {
+          "type": "string",
+          "enum": ["google", "email", "mobile_biometric"],
+          "description": "Primary authentication method used."
+        },
+        "biometricEnabled": {
+          "type": "boolean",
+          "description": "Whether mobile WebAuthn biometric login is active."
+        },
+        "channelHandle": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Creator YouTube or Instagram handle."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "role", "authMethod", "biometricEnabled", "createdAt", "updatedAt"]
+    },
+    "UserPrivateContact": {
+      "title": "UserPrivateContact",
+      "description": "Strictly isolated PII document for creator email and mobile number.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Owner UID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 160
+        },
+        "phoneNumber": {
+          "type": "string",
+          "maxLength": 24
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "updatedAt"]
+    },
+    "BiometricCredential": {
+      "title": "BiometricCredential",
+      "description": "Registered mobile WebAuthn platform authenticator passkey metadata.",
+      "type": "object",
+      "properties": {
+        "credentialId": {
+          "type": "string",
+          "minLength": 4,
+          "maxLength": 256
+        },
+        "ownerId": {
+          "type": "string"
+        },
+        "deviceLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "transports": {
+          "type": "array",
+          "description": "Bounded WebAuthn transport hints."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["credentialId", "ownerId", "deviceLabel", "transports", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Creator profile document keyed by Firebase Auth UID."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateContact" },
+      "description": "Owner-only PII contact info isolated from public profile."
+    },
+    "/users/{userId}/biometricCredentials/{credentialId}": {
+      "schema": { "$ref": "#/entities/BiometricCredential" },
+      "description": "Mobile biometric WebAuthn passkeys linked to the creator."
+    }
+  }
+}

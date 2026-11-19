@@ -1,0 +1,6 @@
+{
+  "name": "KathaStudio",
+  "description": "Personal AI content creation studio for daily Hindi mythological and horror stories, voiceovers, multi-format videos, and YouTube & Instagram publishing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

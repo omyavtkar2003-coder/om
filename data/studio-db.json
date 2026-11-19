@@ -1,0 +1,55 @@
+{
+  "stories": [],
+  "accounts": {
+    "youtube": {
+      "connected": true,
+      "channelId": "UCGEptT_IzEoW8BkrtE_bPRg",
+      "channelName": "YouTube Channel (UCGEptT_IzEoW8BkrtE_bPRg)",
+      "handle": "@UCGEptT_IzEoW8BkrtE_bPRg",
+      "subscribers": 0,
+      "monetized": false,
+      "oauthMode": "oauth",
+      "lastSyncedAt": null
+    },
+    "instagram": {
+      "connected": false,
+      "username": "",
+      "displayName": "",
+      "followers": 0,
+      "professionalAccount": false,
+      "oauthMode": "oauth",
+      "lastSyncedAt": null
+    }
+  },
+  "automation": {
+    "enabled": true,
+    "publishTimeLocal": "19:00",
+    "formats": [
+      "youtube_short",
+      "instagram_reel",
+      "youtube_long"
+    ],
+    "voiceTone": "horror_suspense",
+    "voiceName": "Charon",
+    "weeklyTopics": {
+      "Mon": "horror",
+      "Tue": "horror",
+      "Wed": "krishna",
+      "Thu": "ramayana",
+      "Fri": "horror",
+      "Sat": "mahabharata",
+      "Sun": "hindu_gods"
+    },
+    "dailyTargets": {
+      "youtubeShorts": 0,
+      "instagramReels": 0,
+      "youtubeLong": 0
+    },
+    "requirePublishPermission": true,
+    "dailyLimitsDisabled": true,
+    "horrorPartWiseEnabled": true,
+    "horrorSeriesDailyCount": 2,
+    "lastBatchRunDate": null
+  },
+  "incomeEntries": []
+}
